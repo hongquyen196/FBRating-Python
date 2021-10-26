@@ -1,30 +1,34 @@
 import logging
-import time
 import utils
 
 from selenium import webdriver
-from selenium.common import exceptions
+from selenium_utils.exception import ElementNotFound
 from selenium.webdriver.common.by import By
-from selenium_utils import element
-
-from urllib import parse
+from selenium.webdriver.firefox.options import Options
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class Facebook:
     """
     Facebook automation tools on FireFoxProfile
-
-    E.g: /Users/qhle/Library/Application Support/Firefox/Profiles/vzc6qzxv.default-release
-         /Users/qhle/Library/Application Support/Firefox/Profiles/6h7m62vl.test1
     """
 
-    def __init__(self, profile):
+    def __init__(self, profile, headless=True):
+        """
+        E.g:    /Users/qhle/Library/Application Support/Firefox/Profiles/vzc6qzxv.default-release
+                /Users/qhle/Library/Application Support/Firefox/Profiles/6h7m62vl.test1
+        """
+        options = Options()
+        options.headless = headless
         self.profile = webdriver.FirefoxProfile(profile)
-        self.driver = webdriver.Firefox(self.profile)
+        self.driver = webdriver.Firefox(
+            firefox_profile=self.profile,
+            options=options
+        )
 
-    def reviews_page(self, page, text, photo=''):
+    def reviews_page(self, page, text, photo=None):
         """
         Reviews fanpage
         """
@@ -77,8 +81,9 @@ class Facebook:
 
             logger.info('reviews_page done.')
 
-        except exceptions.NoSuchElementException as e:
-            logger.error('Element not found. %s', str(e))
+        except Exception as e:
+            logger.error('Cannot reviews page due: %s', str(e))
+            pass
 
     def comments_post(self, post, text, photo=''):
         """
@@ -86,20 +91,23 @@ class Facebook:
         """
         logger.info('comments_post')
 
-    def close(self):
+    def quit(self):
         """
         Close browser
         """
-        self.driver.close()
+        try:
+            self.driver.quit()
+        except Exception:
+            pass
 
 
-if __name__ == "__main__":
-    profile = "/Users/qhle/Library/Application Support/Firefox/Profiles/vzc6qzxv.default-release"
-    fb = Facebook(profile)
-    content = "Shop nhiều đồ đáng yêu cực kỳ 🥰|/Users/qhle/Documents/Freelancer/python-test/data/review.jpg"
-    split = content.split("|")
-    text = split[0]
-    photo = split[1]
-    fb.reviews_page("https://www.facebook.com/pg/cavoi.danang", text, photo)
-    time.sleep(5)
-    # fb.close()
+# if __name__ == "__main__":
+#     profile = "/Users/qhle/Library/Application Support/Firefox/Profiles/vzc6qzxv.default-release"
+#     fb = Facebook(profile)
+#     content = "Shop nhiều đồ đáng yêu cực kỳ 🥰|/Users/qhle/Documents/Freelancer/python-test/data/review.jpg"
+#     split = content.split("|")
+#     text = split[0]
+#     photo = split[1]
+#     fb.reviews_page("https://www.facebook.com/pg/cavoi.danang", text, photo)
+#     time.sleep(5)
+#     # fb.quit()
